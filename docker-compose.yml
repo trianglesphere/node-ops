@@ -1,0 +1,28 @@
+version: "3.9"
+
+volumes:
+  geth_data:
+  lightouse_data:
+
+services:
+  geth:
+    image: ethereum/client-go:latest
+    stop_grace_period: 8m
+    volumes:
+      - "geth_data:/data"
+      - ${PWD}/.config/l1-jwt-secret.txt:/config/jwt-secret.txt
+    ports:
+      - 30303:30303
+      - 8545:8545
+    command: --goerli --datadir=/data --http --http.addr=0.0.0.0 --authrpc.jwtsecret=/config/jwt-secret.txt --authrpc.addr=0.0.0.0 --authrpc.vhosts=*
+  lighthouse:
+    depends_on:
+      - geth
+    image: sigp/lighthouse:latest-modern
+    volumes:
+      - "lightouse_data:/data"
+      - ${PWD}/.config/l1-jwt-secret.txt:/config/jwt-secret.txt
+    ports:
+      - 9000:9000
+    command: lighthouse bn --network=goerli --datadir=/data --execution-endpoint=http://geth:8551 --execution-jwt=/config/jwt-secret.txt --checkpoint-sync-url=https://prater-checkpoint-sync.stakely.io
+
