@@ -27,7 +27,7 @@ services:
     depends_on:
       - geth
     image: sigp/lighthouse:${LIGHTHOUSE_TAG}
-    container_name: lightouse-${NETWORK}
+    container_name: lighthouse-${NETWORK}
     volumes:
       - type: bind
         source: ${PWD}/datadirs/${NETWORK}/lighthouse
