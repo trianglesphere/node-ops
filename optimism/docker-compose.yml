@@ -13,8 +13,9 @@ services:
     ports:
       # - 30303:30303/tcp
       # - 30303:30303/udp
-      - 8545:9545
+      - 9545:8545
     command: >
+      --gcmode=${GCMODE}
       --datadir=/data
       --ipcdisable
       --http
@@ -22,6 +23,7 @@ services:
       --authrpc.jwtsecret=/config/jwt-secret.txt
       --authrpc.addr=0.0.0.0
       --authrpc.vhosts=*
+      --authrpc.port=8551
       --nodiscover
   op-node:
     depends_on:
