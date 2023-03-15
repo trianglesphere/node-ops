@@ -1,28 +1,46 @@
 version: "3.9"
 
-volumes:
-  geth_data:
-  lightouse_data:
-
 services:
   geth:
-    image: ethereum/client-go:latest
+    image: ethereum/client-go:${GETH_TAG}
     stop_grace_period: 8m
+    container_name: geth-${NETWORK}
     volumes:
-      - "geth_data:/data"
+      - type: bind
+        source: ${PWD}/datadirs/${NETWORK}/geth
+        target: /data
       - ${PWD}/.config/l1-jwt-secret.txt:/config/jwt-secret.txt
     ports:
-      - 30303:30303
+      - 30303:30303/tcp
+      - 30303:30303/udp
       - 8545:8545
-    command: --goerli --datadir=/data --http --http.addr=0.0.0.0 --authrpc.jwtsecret=/config/jwt-secret.txt --authrpc.addr=0.0.0.0 --authrpc.vhosts=*
+    command: >
+      --${NETWORK}
+      --datadir=/data
+      --ipcdisable
+      --http
+      --http.addr=0.0.0.0
+      --authrpc.jwtsecret=/config/jwt-secret.txt
+      --authrpc.addr=0.0.0.0
+      --authrpc.vhosts=* 
   lighthouse:
     depends_on:
       - geth
-    image: sigp/lighthouse:latest-modern
+    image: sigp/lighthouse:${LIGHTHOUSE_TAG}
+    container_name: lightouse-${NETWORK}
     volumes:
-      - "lightouse_data:/data"
+      - type: bind
+        source: ${PWD}/datadirs/${NETWORK}/lighthouse
+        target: /data
       - ${PWD}/.config/l1-jwt-secret.txt:/config/jwt-secret.txt
     ports:
       - 9000:9000
-    command: lighthouse bn --network=goerli --datadir=/data --execution-endpoint=http://geth:8551 --execution-jwt=/config/jwt-secret.txt --checkpoint-sync-url=https://prater-checkpoint-sync.stakely.io
-
+      - 443:443
+    command: >
+      lighthouse bn
+      --network=${NETWORK}
+      --datadir=/data
+      --execution-endpoint=http://geth:8551
+      --execution-jwt=/config/jwt-secret.txt
+      --disable-deposit-contract-sync
+      --checkpoint-sync-url=${CHECKPOINT_SYNC_URL}
