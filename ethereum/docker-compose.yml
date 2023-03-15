@@ -14,12 +14,15 @@ services:
       - 30303:30303/tcp
       - 30303:30303/udp
       - 8545:8545
+      - 8546:8546
     command: >
       --${NETWORK}
       --datadir=/data
       --ipcdisable
       --http
       --http.addr=0.0.0.0
+      --ws
+      --ws.addr=0.0.0.0
       --authrpc.jwtsecret=/config/jwt-secret.txt
       --authrpc.addr=0.0.0.0
       --authrpc.vhosts=*
