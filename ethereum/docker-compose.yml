@@ -22,7 +22,7 @@ services:
       --http.addr=0.0.0.0
       --authrpc.jwtsecret=/config/jwt-secret.txt
       --authrpc.addr=0.0.0.0
-      --authrpc.vhosts=* 
+      --authrpc.vhosts=*
   lighthouse:
     depends_on:
       - geth

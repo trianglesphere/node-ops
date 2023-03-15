@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  geth:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${GETH_TAG}
+    stop_grace_period: 8m
+    container_name: op-geth-${NETWORK}
+    volumes:
+      - type: bind
+        source: ${PWD}/datadirs/${NETWORK}/geth
+        target: /data
+      - ${PWD}/.config/l2-jwt-secret.txt:/config/jwt-secret.txt
+    ports:
+      # - 30303:30303/tcp
+      # - 30303:30303/udp
+      - 8545:9545
+    command: >
+      --datadir=/data
+      --ipcdisable
+      --http
+      --http.addr=0.0.0.0
+      --authrpc.jwtsecret=/config/jwt-secret.txt
+      --authrpc.addr=0.0.0.0
+      --authrpc.vhosts=*
+      --nodiscover
+  op-node:
+    depends_on:
+      - geth
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG}
+    container_name: op-node-${NETWORK}
+    volumes:
+      - ${PWD}/.config/l2-jwt-secret.txt:/config/jwt-secret.txt
+    command: >
+      op-node
+      --network=${NETWORK}
+      --l1=${L1_RPC_URL}
+      --l1.rpckind=alchemy
+      --l1.trustrpc=true
+      --l2=http://geth:8551
+      --l2.jwt-secret=/config/jwt-secret.txt
+      --verifier.l1-confs=0
+      --rpc.addr=0.0.0.0
+      --rpc.port=7545
+      --p2p.listen.ip=0.0.0.0
+      --p2p.listen.tcp=9003
+      --p2p.listen.udp=9003
+    ports:
+      - "7545:7545"
+      - "9003:9003"
